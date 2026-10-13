@@ -1,0 +1,13 @@
+$ .venv/bin/python -m pytest backend/tests/unit -q
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+30 passed, 2 warnings in 1.37s
+
+$ .venv/bin/python -m pytest backend/tests/integration/test_infra.py -q -s
+postgres: PostgreSQL 16.15 on x86_64-pc-linux-musl
+rabbitmq: probe queue declared ok
+.
+1 passed in 0.19s
+
+$ docker compose ps --format json | python3 -c ...
+quickbite-postgres-1 Up 11 minutes (healthy)
+quickbite-rabbitmq-1 Up 11 minutes (healthy)

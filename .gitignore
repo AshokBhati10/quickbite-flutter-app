@@ -1,0 +1,37 @@
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.ios/
+android/.gradle/
+android/local.properties
+*.keystore
+*.jks
+*.mobileprovision
+*.p12
+
+# Docker / volumes data
+data/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp

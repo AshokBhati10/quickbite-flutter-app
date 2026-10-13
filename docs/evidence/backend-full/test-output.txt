@@ -1,0 +1,27 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0
+rootdir: /home/krylorix/AshokBhati/quickbite-flutterapp/backend
+configfile: pytest.ini
+plugins: asyncio-0.26.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 52 items
+
+backend/tests/integration/test_infra.py .                                [  1%]
+backend/tests/integration/test_phase1.py ....                            [  9%]
+backend/tests/integration/test_phase2.py .....                           [ 19%]
+backend/tests/integration/test_phase3.py .....                           [ 28%]
+backend/tests/integration/test_phase4.py .......                         [ 42%]
+backend/tests/unit/test_config.py .........                              [ 59%]
+backend/tests/unit/test_domain.py .....................                  [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/krylorix/AshokBhati/quickbite-flutterapp/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+tests/unit/test_domain.py::test_error_envelope_shape
+  /home/krylorix/AshokBhati/quickbite-flutterapp/.venv/lib/python3.12/site-packages/starlette/testclient.py:40: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 52 passed, 2 warnings in 21.04s ========================

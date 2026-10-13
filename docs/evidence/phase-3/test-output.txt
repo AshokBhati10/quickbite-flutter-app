@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0 -- /home/krylorix/AshokBhati/quickbite-flutterapp/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/krylorix/AshokBhati/quickbite-flutterapp/backend
+configfile: pytest.ini
+plugins: asyncio-0.26.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=session, asyncio_default_test_loop_scope=session
+collecting ... collected 5 items
+
+backend/tests/integration/test_phase3.py::test_routing_hash_matches_multi_segment_star_does_not PASSED [ 20%]
+backend/tests/integration/test_phase3.py::test_happy_path_exactly_once_effects PASSED [ 40%]
+backend/tests/integration/test_phase3.py::test_skip_locked_claims_are_exclusive PASSED [ 60%]
+backend/tests/integration/test_phase3.py::test_unroutable_publish_leaves_row_unsent PASSED [ 80%]
+backend/tests/integration/test_phase3.py::test_queue_survives_without_consumer PASSED [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/krylorix/AshokBhati/quickbite-flutterapp/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 5 passed, 1 warning in 3.79s =========================

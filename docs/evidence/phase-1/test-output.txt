@@ -1,0 +1,25 @@
+/home/krylorix/AshokBhati/quickbite-flutterapp/.venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.4, pluggy-1.6.0 -- /home/krylorix/AshokBhati/quickbite-flutterapp/backend/../.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /home/krylorix/AshokBhati/quickbite-flutterapp/backend
+configfile: pytest.ini
+plugins: asyncio-0.25.0, anyio-4.15.1
+asyncio: mode=Mode.AUTO, asyncio_default_fixture_loop_scope=None
+collecting ... collected 4 items
+
+tests/integration/test_phase1.py::test_migrate_up_down_up PASSED         [ 25%]
+tests/integration/test_phase1.py::test_seed_twice_no_duplicates PASSED   [ 50%]
+tests/integration/test_phase1.py::test_login_me_and_failures PASSED      [ 75%]
+tests/integration/test_phase1.py::test_readiness_503_when_db_down PASSED [100%]
+
+=============================== warnings summary ===============================
+../.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /home/krylorix/AshokBhati/quickbite-flutterapp/.venv/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 4 passed, 1 warning in 3.68s =========================

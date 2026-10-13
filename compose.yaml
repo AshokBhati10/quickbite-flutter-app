@@ -1,0 +1,191 @@
+name: quickbite
+
+# In-container service addresses. Local (host) development uses the
+# localhost URLs from .env; these environment entries take precedence
+# inside containers.
+x-backend-env: &backend-env
+  DATABASE_URL: postgresql+asyncpg://quickbite:quickbite@postgres:5432/quickbite
+  SYNC_DATABASE_URL: postgresql+psycopg://quickbite:quickbite@postgres:5432/quickbite
+  AMQP_URL: amqp://quickbite:quickbite@rabbitmq:5672/%2F
+  # Demo failure injection (dev only): shell overrides recreate the service,
+  # e.g. PAYMENT_MODE=fail-twice-then-succeed docker compose up -d payment-worker
+  PAYMENT_MODE: ${PAYMENT_MODE:-ok}
+  RESTAURANT_MODE: ${RESTAURANT_MODE:-ok}
+  DELIVERY_MODE: ${DELIVERY_MODE:-ok}
+  NOTIFICATION_MODE: ${NOTIFICATION_MODE:-ok}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: quickbite
+      POSTGRES_PASSWORD: quickbite
+      POSTGRES_DB: quickbite
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quickbite -d quickbite"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: quickbite
+      RABBITMQ_DEFAULT_PASS: quickbite
+    volumes:
+      - rabbitdata:/var/lib/rabbitmq
+    ports:
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  migrate:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  seed:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    volumes:
+      - ./scripts:/srv/scripts:ro
+    command: ["python", "/srv/scripts/seed.py"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  init-topology:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    volumes:
+      - ./scripts:/srv/scripts:ro
+    command: ["python", "/srv/scripts/init_topology.py"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: ["uvicorn", "app.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  payment-worker:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.payment"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  restaurant-worker:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.restaurant"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  delivery-worker:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.delivery"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  notification-worker:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.notification"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  outbox-dispatcher:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.outbox_dispatcher"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  retry-scheduler:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false
+    environment: *backend-env
+    command: ["python", "-m", "workers.retry_scheduler"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.web
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  rabbitdata:
