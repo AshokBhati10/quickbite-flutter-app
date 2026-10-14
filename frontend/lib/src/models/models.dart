@@ -25,18 +25,24 @@ class Restaurant {
   final String id;
   final String name;
   final String description;
+  final String cuisine;
+  final String imageUrl;
   final bool isActive;
 
   const Restaurant(
       {required this.id,
       required this.name,
       required this.description,
+      this.cuisine = '',
+      this.imageUrl = '',
       required this.isActive});
 
   factory Restaurant.fromJson(Map<String, dynamic> json) => Restaurant(
         id: json['id'] as String,
         name: json['name'] as String,
         description: (json['description'] ?? '') as String,
+        cuisine: (json['cuisine'] ?? '') as String,
+        imageUrl: (json['image_url'] ?? '') as String,
         isActive: (json['is_active'] ?? true) as bool,
       );
 }
@@ -45,6 +51,9 @@ class MenuItem {
   final String id;
   final String restaurantId;
   final String name;
+  final String description;
+  final String category;
+  final String imageUrl;
   final int priceMinor;
   final String currency;
   final bool isActive;
@@ -53,6 +62,9 @@ class MenuItem {
       {required this.id,
       required this.restaurantId,
       required this.name,
+      this.description = '',
+      this.category = '',
+      this.imageUrl = '',
       required this.priceMinor,
       required this.currency,
       required this.isActive});
@@ -61,6 +73,9 @@ class MenuItem {
         id: json['id'] as String,
         restaurantId: json['restaurant_id'] as String,
         name: json['name'] as String,
+        description: (json['description'] ?? '') as String,
+        category: (json['category'] ?? '') as String,
+        imageUrl: (json['image_url'] ?? '') as String,
         priceMinor: json['price_minor'] as int,
         currency: (json['currency'] ?? 'INR') as String,
         isActive: (json['is_active'] ?? true) as bool,
@@ -86,6 +101,8 @@ class Cart {
 
   bool get isEmpty => lines.isEmpty;
   int get distinctCount => lines.length;
+  int get totalQuantity =>
+      lines.values.fold(0, (sum, line) => sum + line.quantity);
   int get subtotal => lines.values.fold(0, (sum, line) => sum + line.lineTotal);
 
   /// Single-restaurant rule: adding from another restaurant clears the cart.
@@ -127,19 +144,44 @@ class Cart {
       };
 }
 
+class OrderLine {
+  final String name;
+  final int quantity;
+  final int unitPriceMinor;
+
+  const OrderLine(
+      {required this.name,
+      required this.quantity,
+      required this.unitPriceMinor});
+
+  factory OrderLine.fromJson(Map<String, dynamic> json) => OrderLine(
+        name: (json['name'] ?? '') as String,
+        quantity: (json['quantity'] ?? 0) as int,
+        unitPriceMinor: (json['unit_price_minor'] ?? 0) as int,
+      );
+}
+
 class OrderSummary {
   final String id;
   final String status;
   final int totalMinor;
   final String currency;
   final int version;
+  final String restaurantName;
+  final DateTime? createdAt;
+  final List<OrderLine> lines;
+  final String? failureCode;
 
   const OrderSummary(
       {required this.id,
       required this.status,
       required this.totalMinor,
       required this.currency,
-      required this.version});
+      required this.version,
+      this.restaurantName = '',
+      this.createdAt,
+      this.lines = const [],
+      this.failureCode});
 
   factory OrderSummary.fromJson(Map<String, dynamic> json) => OrderSummary(
         id: json['id'] as String,
@@ -147,6 +189,12 @@ class OrderSummary {
         totalMinor: (json['total_minor'] ?? json['total_amount_minor'] ?? 0) as int,
         currency: (json['currency'] ?? 'INR') as String,
         version: (json['version'] ?? 1) as int,
+        restaurantName: (json['restaurant_name'] ?? '') as String,
+        createdAt: DateTime.tryParse((json['created_at'] ?? '') as String),
+        lines: ((json['items'] ?? []) as List)
+            .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        failureCode: json['failure_code'] as String?,
       );
 }
 

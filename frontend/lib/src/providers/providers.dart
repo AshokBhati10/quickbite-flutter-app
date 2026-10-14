@@ -10,16 +10,33 @@ import '../models/models.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
+/// Shared restaurant search text. The navbar and the home search bar both
+/// write here; the list screen listens and re-queries the backend.
+final restaurantQueryProvider = StateProvider<String>((ref) => '');
+
 class Session extends StateNotifier<UserSummary?> {
-  Session() : super(null);
+  final ApiClient _api;
+  Session(this._api) : super(null);
 
   void signIn(UserSummary user) => state = user;
-  void signOut() => state = null;
+
+  /// Clears the persisted token as well as the in-memory session so a stale
+  /// credential can never be reused after logout.
+  Future<void> signOut() async {
+    state = null;
+    try {
+      await _api.signOut();
+    } catch (_) {
+      // Storage teardown is best-effort; the in-memory session is already gone.
+    }
+  }
+
   bool get isAdmin => state?.role == 'admin';
 }
 
 final sessionProvider =
-    StateNotifierProvider<Session, UserSummary?>((ref) => Session());
+    StateNotifierProvider<Session, UserSummary?>(
+        (ref) => Session(ref.watch(apiClientProvider)));
 
 class CartState extends StateNotifier<Cart> {
   CartState() : super(Cart());

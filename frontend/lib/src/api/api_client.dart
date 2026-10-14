@@ -43,7 +43,7 @@ class ApiClient {
       throw ApiException(
         status: resp.statusCode,
         code: (map['code'] ?? 'http_error').toString(),
-        message: (map['message'] ?? 'Request failed.').toString(),
+        message: (map['message'] ?? map['detail'] ?? 'Request failed.').toString(),
       );
     }
     return body is Map<String, dynamic> ? body : <String, dynamic>{};
@@ -51,7 +51,12 @@ class ApiClient {
 
   Future<Map<String, String>> _headers(
       {String? idempotencyKey, bool auth = true}) async {
-    final headers = <String, String>{'Content-Type': 'application/json'};
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      // Bypasses the ngrok free-tier browser interstitial on API calls; a
+      // no-op for any other host.
+      'ngrok-skip-browser-warning': 'true',
+    };
     if (auth) {
       final token = await tokens.read();
       if (token != null) headers['Authorization'] = 'Bearer $token';
@@ -65,6 +70,18 @@ class ApiClient {
         .post(Uri.parse('$baseUrl/api/v1/auth/login'),
             headers: await _headers(auth: false),
             body: jsonEncode({'email': email, 'password': password}))
+        .timeout(const Duration(seconds: 15));
+    final body = await _decode(resp);
+    await tokens.write((body['access_token'] as String));
+    return body;
+  }
+
+  Future<Map<String, dynamic>> register(
+      String email, String password, String name) async {
+    final resp = await _http
+        .post(Uri.parse('$baseUrl/api/v1/auth/register'),
+            headers: await _headers(auth: false),
+            body: jsonEncode({'email': email, 'password': password, 'name': name}))
         .timeout(const Duration(seconds: 15));
     final body = await _decode(resp);
     await tokens.write((body['access_token'] as String));

@@ -8,8 +8,11 @@ import 'src/providers/providers.dart';
 import 'src/screens/cart.dart';
 import 'src/screens/history_admin.dart';
 import 'src/screens/order_details.dart';
+import 'src/screens/profile.dart';
+import 'src/screens/register.dart';
 import 'src/screens/restaurants.dart';
 import 'src/screens/sign_in.dart';
+import 'src/theme/app_theme.dart';
 
 void main() {
   runApp(const ProviderScope(child: QuickBiteApp()));
@@ -23,14 +26,16 @@ class QuickBiteApp extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     return MaterialApp(
       title: 'QuickBite',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
       // Named routes double as web deep links (/order/:id handled via
       // onGenerateRoute arguments; direct URL entry lands on home).
       routes: {
+        '/signin': (context) => const SignInScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/restaurants': (context) => const RestaurantListScreen(),
         '/history': (context) => const OrderHistoryScreen(),
+        '/profile': (context) => const ProfileDetailsScreen(),
         '/cart': (context) => const CartScreen(),
         '/admin': (context) => const AdminOverviewScreen(),
       },

@@ -29,6 +29,7 @@ from app.domain.models import (
     OrderItem,
     OrderStatusHistory,
     OutboxEvent,
+    Restaurant,
     User,
     new_id,
 )
@@ -53,7 +54,9 @@ def canonical_hash(body: CheckoutRequest) -> str:
     ).hexdigest()
 
 
-def _order_out(order: Order, items: list[OrderItem]) -> OrderOut:
+def _order_out(
+    order: Order, items: list[OrderItem], restaurant_name: str = ""
+) -> OrderOut:
     return OrderOut(
         id=order.id,
         status=order.status,
@@ -63,6 +66,7 @@ def _order_out(order: Order, items: list[OrderItem]) -> OrderOut:
         failure_code=order.failure_code,
         driver_id=order.driver_id,
         restaurant_id=order.restaurant_id,
+        restaurant_name=restaurant_name,
         delivery_address=order.delivery_address,
         items=[
             OrderItemOut(
@@ -267,17 +271,35 @@ async def list_orders(
         stmt = stmt.where(Order.status == status)
         count_stmt = count_stmt.where(Order.status == status)
     total = (await db.execute(count_stmt)).scalar() or 0
-    rows = (
-        await db.execute(
-            stmt.order_by(Order.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
-        )
-    ).scalars()
+    rows = list(
+        (
+            await db.execute(
+                stmt.order_by(Order.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        ).scalars()
+    )
+    names = await _restaurant_names(db, {o.restaurant_id for o in rows})
     items = []
     for o in rows:
-        items.append(_order_out(o, await _load_items(db, o.id)).model_dump(mode="json"))
+        items.append(
+            _order_out(
+                o, await _load_items(db, o.id), names.get(o.restaurant_id, "")
+            ).model_dump(mode="json")
+        )
     return Page(items=items, page=page, page_size=page_size, total=total)
+
+
+async def _restaurant_names(db: AsyncSession, ids: set[str]) -> dict[str, str]:
+    if not ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(Restaurant.id, Restaurant.name).where(Restaurant.id.in_(ids))
+        )
+    ).all()
+    return {rid: name for rid, name in rows}
 
 
 @router.get("/orders/{order_id}")
@@ -287,7 +309,8 @@ async def get_order(
     user: User = Depends(get_current_user),
 ):
     order, items = await _owned_order(db, order_id, user)
-    return _order_out(order, items)
+    names = await _restaurant_names(db, {order.restaurant_id})
+    return _order_out(order, items, names.get(order.restaurant_id, ""))
 
 
 @router.get("/orders/{order_id}/history")

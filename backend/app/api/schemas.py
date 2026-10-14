@@ -12,6 +12,12 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RegisterRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8, max_length=128)
+    name: str = Field(min_length=1, max_length=255)
+
+
 class UserSummary(BaseModel):
     id: str
     email: str
@@ -37,6 +43,8 @@ class RestaurantOut(BaseModel):
     id: str
     name: str
     description: str
+    cuisine: str = ""
+    image_url: str = ""
     is_active: bool
 
 
@@ -45,6 +53,8 @@ class MenuItemOut(BaseModel):
     restaurant_id: str
     name: str
     description: str
+    category: str = ""
+    image_url: str = ""
     price_minor: int
     currency: str
     is_active: bool
@@ -86,6 +96,7 @@ class OrderOut(BaseModel):
     failure_code: str | None = None
     driver_id: str | None = None
     restaurant_id: str
+    restaurant_name: str = ""
     delivery_address: str
     items: list[OrderItemOut] = []
     created_at: datetime

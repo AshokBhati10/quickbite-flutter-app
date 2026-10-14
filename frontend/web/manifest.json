@@ -1,11 +1,11 @@
 {
-    "name": "quickbite",
-    "short_name": "quickbite",
+    "name": "QuickBite",
+    "short_name": "QuickBite",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFF8F3",
+    "theme_color": "#FF5A2C",
+    "description": "QuickBite — order from multiple local restaurants in one marketplace.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

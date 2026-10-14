@@ -37,7 +37,7 @@ def _client():
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
 
-async def _seed_twice() -> None:
+async def _seed_twice():
     import importlib.util
 
     spec = importlib.util.spec_from_file_location(
@@ -48,6 +48,7 @@ async def _seed_twice() -> None:
     spec.loader.exec_module(module)
     await module.main()
     await module.main()
+    return module
 
 
 @pytest.mark.asyncio
@@ -70,7 +71,7 @@ async def test_migrate_up_down_up(db_session) -> None:
 async def test_seed_twice_no_duplicates(db_session) -> None:
     await db_session.close()
     await _migrate("up")
-    await _seed_twice()
+    seed = await _seed_twice()
     users = (await db_session.execute(select(func.count()).select_from(User))).scalar()
     rests = (
         await db_session.execute(select(func.count()).select_from(Restaurant))
@@ -78,9 +79,13 @@ async def test_seed_twice_no_duplicates(db_session) -> None:
     items = (
         await db_session.execute(select(func.count()).select_from(MenuItem))
     ).scalar()
+    expected_rests, expected_items = seed.expected_counts()
+    # Two accounts; the full expanded catalog, seeded twice without duplicates.
     assert users == 2
-    assert rests == 2
-    assert items == 5
+    assert rests == expected_rests
+    assert items == expected_items
+    assert expected_rests == 25
+    assert expected_items >= 200
 
 
 @pytest.mark.asyncio
